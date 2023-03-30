@@ -1,0 +1,112 @@
+﻿@page "/archive/create"
+@page "/archive/edit/{Id}"
+@using Models
+@using Business.Repository.IRepository
+@using System;
+@using System.Net;
+@using System.IO;
+@using Radzen
+@using Radzen.Blazor
+@*@using Radzen
+    @using Radzen.Blazor*@
+@using BlazorInputFile
+@inject IArchivalItemRepository ArchivalRepository
+@inject NavigationManager NavigationManager
+<div class="row mt-2 mb-5">
+    <h3 class="card-title text-info mb-3 ml-3">@Title Item</h3>
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <EditForm Model="ArchivalItemModel" OnValidSubmit="EmployeeHandlerUpsert">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label>Upload Image of Item</label>
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('picker').click()">Choose Image</button>
+                        <BlazorInputFile.InputFile id="picker" OnChange="@(e => HandleImageUpload(e))" accept=".jpg, .jpeg, .png" hidden></BlazorInputFile.InputFile>
+                    </div>
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <InputText @bind-Value="ArchivalItemModel.ArchivalItemName" class="form-control"></InputText>
+                    </div>
+                    <div class="form-group">
+                        <label>Item Short Description</label>
+                        <InputText @bind-Value="ArchivalItemModel.ArchivalItemShortDescription" class="form-control"></InputText>
+                    </div>
+                    <div class="form-group">
+                        <label>Item Long Description</label>
+                        <RadzenHtmlEditor @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" Disabled="false" Style="height: 300px; margin-bottom: 1rem; background-color: lightgray"></RadzenHtmlEditor>
+                        @*<InputText @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" class="form-control"></InputText>*@
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary">@Title Item</button>
+                        <NavLink href="archive" class="btn btn-secondary">Back to Archival</NavLink>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string Id { get; set; }
+    private ArchivalItemDTO ArchivalItemModel { get; set; } = new ArchivalItemDTO();
+    private string Title { get; set; } = "Create";
+    string htmlValue = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != null)
+        {
+            Title = "Update";
+            ArchivalItemModel = await ArchivalRepository.GetArchivalItem(Id);
+        }
+
+        else
+        {
+            ArchivalItemModel = new ArchivalItemDTO();
+            ArchivalItemModel.Id = Guid.NewGuid().ToString();
+        }
+    }
+
+    public async void HandleImageUpload(IFileListEntry[] files)
+    {
+        ArchivalItemModel.ArchivalItemImage = await FileSender(files.FirstOrDefault());
+    }
+
+    public async Task<byte[]> FileSender(IFileListEntry file)
+    {
+        using (var ms = new System.IO.MemoryStream())
+        {
+            await file.Data.CopyToAsync(ms);
+            return ms.ToArray();
+        }
+
+    }
+
+    private async Task EmployeeHandlerUpsert()
+    {
+        try
+        {
+            if ((ArchivalItemModel.Id != "") && Title == "Update")
+            {
+                //update
+                var UpdateEmployee = await ArchivalRepository.UpdateArchivalItem(ArchivalItemModel.Id, ArchivalItemModel);
+            }
+
+            else
+            {
+                var CreatedEmployee = await ArchivalRepository.CreateArchivalItem(ArchivalItemModel);
+            }
+
+        }
+        catch
+        {
+
+        }
+
+        NavigationManager.NavigateTo("archive");
+    }
+}

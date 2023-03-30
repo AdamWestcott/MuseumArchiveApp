@@ -1,0 +1,39 @@
+﻿@page "/InputAbout"
+@using System.IO
+
+<h3>AboutText</h3>
+<button onclick="document.getElementById('picker').click()">Choose Text File</button>
+<InputFile id="picker" OnChange="@OnInputFileChange" accept=".txt"  hidden></InputFile>
+<div class="panel panel-default">
+    <div class="panel-heading">Text File Contents:</div>
+    <div class="panel-body">
+        <textarea disabled="disabled" id="DisplayedText" rows="10" class="form-control" @bind="textfile"></textarea>
+    </div>
+</div>
+
+<br />
+
+@code {
+    public string textfile { get; set; } = string.Empty;
+
+    string filePath;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        textfile = "";
+        var file = e.File;
+
+        Stream stream = file.OpenReadStream();
+        var path = Path.GetFullPath("wwwroot\\Text\\") + file.Name;
+        FileStream fs = File.Create(path);
+        await stream.CopyToAsync(fs);
+        stream.Close();
+        fs.Close();
+
+        var lines = System.IO.File.ReadAllLines(path);
+        foreach (string line in lines)
+        {
+            textfile += line + Environment.NewLine;
+        }
+    }
+}

@@ -1,0 +1,55 @@
+﻿@*@page "/Report"*@
+@page "/Report/{Id}"
+
+@using Telerik.ReportViewer.Blazor
+@using System.Drawing;
+@using Models
+@using Business.Repository.IRepository
+@using System;
+@using System.Net;
+@using System.IO;
+@using Radzen
+@using Radzen.Blazor
+@using BlazorInputFile
+@inject IArchivalItemRepository ArchivalRepository
+@inject NavigationManager NavigationManager
+<style>
+    .trv-report-viewer {
+        width: 100%;
+        height: 880px;
+    }
+</style>
+<NavLink href="archive" class="btn btn-secondary">Back to Archival</NavLink>
+<div class="dashboard">
+    <ReportViewer ViewerID="rv1"
+                  ServiceUrl="/api/reports"
+                  ReportSource="@(new ReportSourceOptions
+                                  {
+                                      Report ="Report1.trdp",
+                                      Parameters = new Dictionary<string, object>
+                                       {
+                                          {"pictureBox1", ArchivalItemModel.ArchivalItemImage},
+                                          { "ItemTitle", ArchivalItemModel.ArchivalItemName },
+                                          { "ItemShortDescription", ArchivalItemModel.ArchivalItemShortDescription },
+                                          { "ItemLongDescription", ArchivalItemModel.ArchivalItemLongDescription }
+                                       }
+
+                                  })" />
+</div>
+
+<link href="css/dashboard.css" rel="stylesheet" />
+@code {
+    [Parameter]
+#nullable enable
+    public string? Id { get; set; }
+#nullable disable
+    private ArchivalItemDTO ArchivalItemModel { get; set; } = new ArchivalItemDTO();
+    string archivalImage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ArchivalItemModel = await ArchivalRepository.GetArchivalItem(Id);
+        archivalImage = "data:image/jpg;base64, " + Convert.ToBase64String(ArchivalItemModel.ArchivalItemImage);
+    }
+
+}

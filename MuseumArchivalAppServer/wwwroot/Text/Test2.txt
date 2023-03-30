@@ -1,0 +1,37 @@
+ public void CalculateMeasures1() throws IOException {
+       Parent root;
+    numberOfLines1 = measures3.calculateNumberOfLines1();
+    numberOfKeywords1 = measures3.calculateNumberOfKeywords1();
+    cyclomatic1 = measures3.calculateCyclomaticComplexity1();
+            code1Measures = "Number of Lines: "+numberOfLines1 +"\n" 
+                    + "Number of Keywords: "+numberOfKeywords1 +"\n"
+                    + "Cyclomatic Complexity: "+cyclomatic1+"\n";
+            System.out.println(code1Measures);
+        URL location = getClass().getResource("/fxml/MeasureScene1.fxml");
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(location);
+        root = fxmlLoader.load(location.openStream());
+        MeasureScene1Controller contr = fxmlLoader.getController();
+        contr.setAreaText(code1Measures);
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.setTitle("Measures for 1st Code");
+        stage.show();
+            
+            //measureView.setText(code1Measures);
+           }
+   @FXML
+   public void ExportCode1() throws IOException {
+            TextInputDialog exporter1Name = new TextInputDialog();
+            exporter1Name.setTitle("Enter File Name");
+            exporter1Name.getDialogPane().setContentText("Enter File Name");
+            Optional<String> result =exporter1Name.showAndWait();
+            TextField input = exporter1Name.getEditor();
+            if(input.getText()!= null && input.getText().toString().length()!=0)
+            {
+              export1.setFilename1(input.getText().toString());
+            }
+            export1.ExportMeasures1();
+           }

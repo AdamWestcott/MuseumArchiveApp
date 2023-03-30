@@ -1,0 +1,75 @@
+﻿@page "/archive"
+@using Models
+@using Business.Repository.IRepository
+@using Radzen.Blazor
+@using Radzen
+@inject IArchivalItemRepository ArchivalRepository
+@inject NavigationManager NavigationManager
+
+<div class=" row mt-4">
+    <div class="col-8">
+        <h4 class="card-title text-info">Archival</h4>
+    </div>
+    <div class="col-3 offset-1">
+        <NavLink href="archive/create" class="btn btn-info form-control">Add New Item</NavLink>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-12">
+        <RadzenDataGrid @ref="radzenArchivalItemGrid" AllowSorting="true" AllowFiltering="true" FilterMode="Radzen.FilterMode.Simple"
+                        Data="@ArchivalItems" TItem="ArchivalItemDTO" FilterCaseSensitivity="Radzen.FilterCaseSensitivity.CaseInsensitive"
+                        LogicalFilterOperator="Radzen.LogicalFilterOperator.Or" AllowPaging="true" PageSize="5" AllowColumnResize="true">
+            <Columns>
+                <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Title="Image"
+                                        Width="250px" Filterable="false">
+                    <Template>
+                        @if (data.ArchivalItemImage != null)
+                        {
+                            //getUnitImage(data.UnitId);
+                            archivalImage = "data:image/jpg;base64, " + Convert.ToBase64String(data.ArchivalItemImage);
+                        }
+                        <RadzenImage Path="@archivalImage" style="width: 80px; height: 80px; border-radius: 8px;"></RadzenImage>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitName" Title="Name"
+                                        Width="250px" Filterable="true">
+                    <Template>
+                        @data.ArchivalItemName
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitDescription" Title="Brief Description" Filterable="false">
+                    <Template>
+                        @data.ArchivalItemShortDescription
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Title="Action">
+                    <Template>
+                        <RadzenLink href="@($"report/{data.Id}")" Icon="ads_click" Style="text-decoration: none; color: #416FE9; font-size: 2em;" ></RadzenLink>
+                        <RadzenLink href="@($"archive/edit/{data.Id}")" Icon="edit" Style="text-decoration: none; color: #416FE9; font-size: 2em;"></RadzenLink>
+                        <RadzenLink href="javascript:void(0)" Icon="delete" Style="text-decoration: none; color: #416FE9; font-size: 2em;" @onclick="@(e => HandleDelete(data.Id))"></RadzenLink>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+
+</div>
+@code {
+    private IEnumerable<ArchivalItemDTO> ArchivalItems { get; set; } = new List<ArchivalItemDTO>();
+    private string DeleteID { get; set; } = null;
+    string archivalImage = "";
+    RadzenDataGrid<ArchivalItemDTO> radzenArchivalItemGrid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ArchivalItems = await ArchivalRepository.GetAllArchivalItems();
+    }
+
+    private async Task HandleDelete(string archivalItemID)
+    {
+        DeleteID = archivalItemID;
+        var DeleteEmployee = await ArchivalRepository.DeleteArchivalItem(DeleteID);
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+}
