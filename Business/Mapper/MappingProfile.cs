@@ -19,6 +19,12 @@ namespace Business.Mapper
 
             CreateMap<ProvidenceDTO, Providences>();
             CreateMap<Providences, ProvidenceDTO>();
+
+            CreateMap<KeywordTagDTO, KeywordTag>();
+            CreateMap<KeywordTag, KeywordTagDTO>();
+
+            CreateMap<KeywordTagGroupDTO, KeywordTagGroup>();
+            CreateMap<KeywordTagGroup, KeywordTagGroupDTO>();
         }
     }
 }

@@ -15,5 +15,8 @@ namespace DataAccess.Data
         }
         public DbSet<ArchivalItem> ArchivalItems { get; set; }
         public DbSet<Providences> Providences { get; set; }
+        public DbSet<KeywordTag> KeywordTags { get; set; }
+
+        public DbSet<KeywordTagGroup> KeywordTagGroups { get; set; }
     }
 }

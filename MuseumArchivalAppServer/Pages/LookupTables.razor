@@ -1,0 +1,197 @@
+﻿@page "/lookupTables"
+@using Radzen
+@using Radzen.Blazor
+@using Models;
+@using Business.Repository.IRepository
+@inject IKeywordTagRepository KeywordRepository
+@inject MuseumArchivalAppServer.Areas.StoredModel.StoredItems stored
+<style>
+
+    .checkbox-style {
+        border-color: black;
+    }
+
+        .checkbox-style:checked {
+            border-color: black;
+        }
+</style>
+
+<h1 style="color:white","text-align:center">LookUp Tables</h1>
+<br />
+<br />
+
+<RadzenTabs>
+    <Tabs>
+        <RadzenTabsItem Text="Tables A-E">
+            <RadzenTabs>
+                <Tabs>
+
+                </Tabs>
+            </RadzenTabs>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Tables F-L">
+            <RadzenTabs>
+                <Tabs>
+                    <RadzenTabsItem Text="Keyword Tags">
+                        @if (KeywordTagAddEdit == false)
+                        {
+                            <div class="col-12">
+
+                                <RadzenButton Click="AddKeywordTag" class="btn btn-primary" Style="width:auto">Add Keyword Tag</RadzenButton>
+
+                                @if (selectedKeywordTags != null)
+                                {
+
+                                    @if (selectedKeywordTags.Count() == 1)
+                                    {
+                                        <RadzenButton Click="@(e => EditKeywordTag(selectedKeywordTags.FirstOrDefault().keywordTagID))" class="btn btn-primary">Edit</RadzenButton>
+                                    }
+
+                                    @if (selectedKeywordTags.Count() >= 1)
+                                    {
+                                        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Primary" Click="@(e => HandleKeywordTagDelete())" Style="max-height:auto"></RadzenButton>
+                                    }
+                                }
+                            </div>
+                            <br />
+                            <br />
+                            <RadzenDataGrid @ref="KeywordTagGrid" AllowSorting="true" Data="@keywordTags" TItem="KeywordTagDTO" AllowPaging="true" AllowFiltering="true" FilterMode="Radzen.FilterMode.Simple"
+                                            PageSize="6" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" SelectionMode="DataGridSelectionMode.Multiple"
+                                            @bind-Value=@selectedKeywordTags>
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="KeywordTagDTO" Width="40px" Sortable="false" Filterable="false">
+                                        <Template Context="data">
+                                            <RadzenCheckBox TriState="false" Value="@(selectedKeywordTags != null && selectedKeywordTags.Contains(data))"
+                                                            TValue="bool" Change=@(args => { KeywordTagGrid.SelectRow(data); }) />
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="KeywordTagDTO" Context="data" Title="Keyword" Filterable="true">
+                                        <Template>
+                                            @data.keywordTagName
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        }
+
+                        else if (KeywordTagAddEdit == true)
+                        {
+                            <div class="row mt-2 mb-5">
+                                <h3 class="card-title text-black mb-3 ml-3">@Title Keyword Tag</h3>
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <EditForm Model="KeywordTag" OnValidSubmit="KeywordTagUpsert">
+                                                <DataAnnotationsValidator />
+                                                <ValidationSummary />
+                                                <div class="form-group">
+                                                    <label>Keyword</label>
+                                                    <InputText @bind-Value="KeywordTag.keywordTagName" class="form-control"></InputText>
+                                                </div>
+                                                <div class="form-group">
+                                                    <button class="btn btn-primary">Save</button>
+                                                    <button @onclick="BackToKeywordTagTable" type="button" class="btn btn-secondary">Back</button>
+                                                </div>
+                                            </EditForm>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </RadzenTabsItem>
+                </Tabs>
+            </RadzenTabs>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Tables M-S">
+            <RadzenTabs>
+                <Tabs>
+
+                </Tabs>
+            </RadzenTabs>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Tables T-Z">
+            <RadzenTabs>
+                <Tabs>
+
+                </Tabs>
+            </RadzenTabs>
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
+@code {
+    public string Title = "";
+    public string DeleteID = "";
+    bool KeywordTagAddEdit = false;
+    IEnumerable<KeywordTagDTO> keywordTags = new List<KeywordTagDTO>();
+    KeywordTagDTO KeywordTag = new KeywordTagDTO();
+    IList<KeywordTagDTO> selectedKeywordTags;
+    RadzenDataGrid<KeywordTagDTO> KeywordTagGrid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        keywordTags = await KeywordRepository.GetAllKeywordTags();
+    }
+
+    public void AddKeywordTag()
+    {
+        Title = "Create";
+        KeywordTag = new KeywordTagDTO();
+        KeywordTagAddEdit = true;
+        KeywordTag.keywordTagID = Guid.NewGuid().ToString();
+    }
+
+    public async void EditKeywordTag(string keywordTagId)
+    {
+        Title = "Update";
+        KeywordTag = await KeywordRepository.GetKeywordTag(keywordTagId);
+        KeywordTagAddEdit = true;
+        StateHasChanged();
+
+    }
+
+    public void BackToKeywordTagTable()
+    {
+        KeywordTagAddEdit = false;
+        StateHasChanged();
+    }
+
+    public async void KeywordTagUpsert()
+    {
+        try
+        {
+            if ((KeywordTag.keywordTagID != null && Title == "Update"))
+            {
+                //update
+                var UpdateUnitCurrency = await KeywordRepository.UpdateKeywordTag(KeywordTag.keywordTagID, KeywordTag);
+            }
+
+            else
+            {
+                var CreatedUnitCurrency = await KeywordRepository.CreateKeywordTag(KeywordTag);
+            }
+
+        }
+        catch
+        {
+
+        }
+
+        KeywordTagAddEdit = false;
+        selectedKeywordTags = null;
+        keywordTags = await KeywordRepository.GetAllKeywordTags();
+        StateHasChanged();
+    }
+
+    private async Task HandleKeywordTagDelete()
+    {
+        foreach (var unitCurrency in selectedKeywordTags)
+        {
+            DeleteID = unitCurrency.keywordTagID;
+            var DeleteUnitCurrency = await KeywordRepository.DeleteKeywordTag(DeleteID);
+        }
+
+        selectedKeywordTags = null;
+        keywordTags = await KeywordRepository.GetAllKeywordTags();
+        StateHasChanged();
+    }
+}

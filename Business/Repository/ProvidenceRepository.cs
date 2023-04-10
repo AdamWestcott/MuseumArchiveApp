@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Business.Repository
 {
-    public class ProvidenceRepository: IProvidenceRepository
+    public class ProvidenceRepository : IProvidenceRepository
     {
         private readonly ApplicationDbContext _db;
         private readonly IMapper _mapper;
@@ -29,12 +29,12 @@ namespace Business.Repository
             return _mapper.Map<Providences, ProvidenceDTO>(addedProvidence.Entity);
         }
 
-        public async Task<string> DeleteArchivalItem(string archivalItemId)
+        public async Task<string> DeleteProvidence(string providenceID)
         {
-            var archivalItemDetails = await _db.ArchivalItems.FindAsync(archivalItemId);
-            if (archivalItemDetails != null)
+            var providenceDetails = await _db.Providences.FindAsync(providenceID);
+            if (providenceDetails != null)
             {
-                _db.ArchivalItems.Remove(archivalItemDetails);
+                _db.Providences.Remove(providenceDetails);
                 await _db.SaveChangesAsync();
                 return "Done";
             }
@@ -43,13 +43,13 @@ namespace Business.Repository
 
         }
 
-        public async Task<IEnumerable<ArchivalItemDTO>> GetAllArchivalItems()
+        public async Task<IEnumerable<ProvidenceDTO>> GetAllProvidences()
         {
             try
             {
-                IEnumerable<ArchivalItemDTO> archivalItemDTOS =
-                    _mapper.Map<IEnumerable<ArchivalItem>, IEnumerable<ArchivalItemDTO>>(_db.ArchivalItems);
-                return archivalItemDTOS;
+                IEnumerable<ProvidenceDTO> providenceDTOS =
+                    _mapper.Map<IEnumerable<Providences>, IEnumerable<ProvidenceDTO>>(_db.Providences);
+                return providenceDTOS;
 
             }
 
@@ -59,14 +59,22 @@ namespace Business.Repository
             }
         }
 
-        public async Task<ArchivalItemDTO> GetArchivalItem(string archivalItemId)
+        public async Task<IEnumerable<ProvidenceDTO>> GetAllProvidencesByArchivalItemID(string archivalItemID)
+        {
+            List<ProvidenceDTO> result = new List<ProvidenceDTO>();
+            List<Providences> providences = _db.Providences.Where(x => x.ArchivalItemID == archivalItemID).ToList();
+            result = _mapper.Map<List<ProvidenceDTO>>(providences);
+            return await Task.FromResult(result);
+        }
+
+        public async Task<ProvidenceDTO> GetProvidence(string providenceID)
         {
             try
             {
-                ArchivalItemDTO archivalItem = _mapper.Map<ArchivalItem, ArchivalItemDTO>(
-                await _db.ArchivalItems.FirstOrDefaultAsync(x => x.Id == archivalItemId));
+                ProvidenceDTO providence = _mapper.Map<Providences, ProvidenceDTO>(
+                await _db.Providences.FirstOrDefaultAsync(x => x.Id == providenceID));
 
-                return archivalItem;
+                return providence;
             }
             catch (Exception ex)
             {
@@ -74,14 +82,14 @@ namespace Business.Repository
             }
         }
 
-        public async Task<ArchivalItemDTO> IsArchivalItemUnique(string name)
+        public async Task<ProvidenceDTO> IsProvidenceUnique(string name)
         {
             try
             {
-                ArchivalItemDTO archivalItem = _mapper.Map<ArchivalItem, ArchivalItemDTO>(
-                await _db.ArchivalItems.FirstOrDefaultAsync(x => x.ArchivalItemName.ToLower() == name.ToLower()));
+                ProvidenceDTO providence = _mapper.Map<Providences, ProvidenceDTO>(
+                await _db.Providences.FirstOrDefaultAsync(x => x.ProvidenceName.ToLower() == name.ToLower()));
 
-                return archivalItem;
+                return providence;
             }
             catch (Exception ex)
             {
@@ -89,18 +97,18 @@ namespace Business.Repository
             }
         }
 
-        public async Task<ArchivalItemDTO> UpdateArchivalItem(string archivalItemId, ArchivalItemDTO archivalItemDTO)
+        public async Task<ProvidenceDTO> UpdateProvidence(string providenceID, ProvidenceDTO providenceDTO)
         {
             try
             {
-                if (archivalItemId == archivalItemDTO.Id)
+                if (providenceID == providenceDTO.Id)
                 {
                     //valid
-                    ArchivalItem archivalDetails = await _db.ArchivalItems.FindAsync(archivalItemId);
-                    ArchivalItem archivalItem = _mapper.Map<ArchivalItemDTO, ArchivalItem>(archivalItemDTO, archivalDetails);
-                    var updatedEmployee = _db.ArchivalItems.Update(archivalItem);
+                    Providences providenceDetails = await _db.Providences.FindAsync(providenceID);
+                    Providences providence = _mapper.Map<ProvidenceDTO, Providences>(providenceDTO, providenceDetails);
+                    var updatedEmployee = _db.Providences.Update(providence);
                     await _db.SaveChangesAsync();
-                    return _mapper.Map<ArchivalItem, ArchivalItemDTO>(updatedEmployee.Entity);
+                    return _mapper.Map<Providences, ProvidenceDTO>(updatedEmployee.Entity);
                 }
                 else
                 {

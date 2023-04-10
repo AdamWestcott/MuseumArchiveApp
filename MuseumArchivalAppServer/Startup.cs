@@ -19,6 +19,7 @@ using Telerik.Reporting.Services;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Telerik.Reporting.Cache.File;
 using Radzen;
+using MuseumArchivalAppServer.Areas.StoredModel;
 
 namespace MuseumArchivalAppServer
 {
@@ -49,6 +50,10 @@ namespace MuseumArchivalAppServer
             });
             
             services.AddScoped<IArchivalItemRepository, ArchivalItemRepository>();
+            services.AddScoped<IProvidenceRepository, ProvidenceRepository>();
+            services.AddScoped<IKeywordTagRepository, KeywordTagRepository>();
+            services.AddScoped<IKeywordTagGroupRepository, KeywordTagGroupRepository>();
+            services.AddSingleton<StoredItems>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddScoped<DialogService>();

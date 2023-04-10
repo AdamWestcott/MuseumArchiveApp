@@ -3,14 +3,16 @@ using System;
 using DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230404205653_AddedCreationDateAndReferenceToArchivalItemsTable")]
+    partial class AddedCreationDateAndReferenceToArchivalItemsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,42 +49,6 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ArchivalItems");
-                });
-
-            modelBuilder.Entity("DataAccess.Data.KeywordTag", b =>
-                {
-                    b.Property<string>("keywordTagID")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("keywordTagName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("keywordTagID");
-
-                    b.ToTable("KeywordTags");
-                });
-
-            modelBuilder.Entity("DataAccess.Data.KeywordTagGroup", b =>
-                {
-                    b.Property<string>("keywordTagGroupID")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ArchivalItemID")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("keywordTagID")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("keywordTagName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("keywordTagGroupID");
-
-                    b.ToTable("KeywordTagGroups");
                 });
 
             modelBuilder.Entity("DataAccess.Data.Providences", b =>

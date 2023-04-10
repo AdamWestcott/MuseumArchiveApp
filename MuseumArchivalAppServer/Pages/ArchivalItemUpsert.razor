@@ -11,7 +11,114 @@
     @using Radzen.Blazor*@
 @using BlazorInputFile
 @inject IArchivalItemRepository ArchivalRepository
+@inject IKeywordTagRepository KeywordTagRepository
+@inject IKeywordTagGroupRepository KeywordTagGroupRepository
 @inject NavigationManager NavigationManager
+
+<style>
+    .rz-button.btn-primary {
+        background-color: #1B6EC2 !important;
+    }
+    #svfmodal {
+        display: flex
+    }
+
+    .modal-fullscreen {
+        width: 100vw;
+        max-width: none;
+        height: 100%;
+        margin: 0;
+        overflow-y: hidden;
+        padding-right: 15px;
+        padding-left: 15px;
+        padding-top: 15px
+    }
+
+    .modal-dialog {
+        position: initial;
+    }
+
+    .modal-header {
+        border-bottom: 0px !important;
+    }
+
+    body.modal-open {
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    .my-custom-actions .k-window-titlebar {
+        background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #416FE9 70%) !important;
+        /*color: green !important;     ----->Colour of Text*/
+    }
+
+    customfloat {
+        float: right !important;
+    }
+
+    .checkbox-style {
+        border-color: black;
+    }
+
+        .checkbox-style:checked {
+            border-color: black;
+        }
+
+    .numeric-style {
+        border-color: black;
+    }
+</style>
+
+@if (KeywordTagOpen == true)
+{
+    <div class="modal fade show" tabindex="-1" role="dialog" style="display: flex;">
+        <div class="modal-dialog modal-fullscreen" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 style="text-align:center" class="modal-title">Key Words</h2>
+                    <button type="button"
+                            class="close"
+                            data-dismiss="modal"
+                            aria-label="Close"
+                            @onclick="ClosePopup">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div style="overflow:scroll;" class="modal-body">
+                    <p>
+                        <br />
+                        <RadzenDataGrid @ref="grid" AllowRowSelectOnRowClick="true" AllowFiltering="true" FilterMode="Radzen.FilterMode.Simple" AllowSorting="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="8"
+                                        Data="@keywords" TItem="KeywordTagDTO" ColumnWidth="300px"
+                                        SelectionMode="DataGridSelectionMode.Multiple" @bind-Value=@selectedKeywords>
+                            <Columns>
+                                <RadzenDataGridColumn TItem="KeywordTagDTO" Width="40px" Sortable="false" Filterable="false">
+                                    <Template Context="data">
+                                        <RadzenCheckBox TriState="false" Value="@(selectedKeywords != null && selectedKeywords.Contains(data))"
+                                                        TValue="bool" Change=@(args => { if (!allowRowSelectOnRowClick) { grid.SelectRow(data); } }) />
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="KeywordTagDTO" Context="data" Title="Keyword" Filterable="true">
+                                    <Template>
+                                        @data.keywordTagName
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                        <RadzenButton Text="Save Standard Selections" class="btn btn-primary" Style="width:auto" Click="SaveSelectionPopup"></RadzenButton>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 <div class="row mt-2 mb-5">
     <h3 class="card-title text-info mb-3 ml-3">@Title Item</h3>
     <div class="col-md-12">
@@ -30,6 +137,10 @@
                         <InputText @bind-Value="ArchivalItemModel.ArchivalItemName" class="form-control"></InputText>
                     </div>
                     <div class="form-group">
+                        <label>Creation Date</label>
+                        <InputDate @bind-Value="ArchivalItemModel.ArchivalItemCreationDate" class="form-control"></InputDate>
+                    </div>
+                    <div class="form-group">
                         <label>Item Short Description</label>
                         <InputText @bind-Value="ArchivalItemModel.ArchivalItemShortDescription" class="form-control"></InputText>
                     </div>
@@ -37,6 +148,10 @@
                         <label>Item Long Description</label>
                         <RadzenHtmlEditor @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" Disabled="false" Style="height: 300px; margin-bottom: 1rem; background-color: lightgray"></RadzenHtmlEditor>
                         @*<InputText @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" class="form-control"></InputText>*@
+                    </div>
+                    <div class="form-group">
+                        <label>Keywords</label>
+                        <RadzenButton Click="@(e => OpenPopup())" class="btn btn-primary" Style="width:auto" Text="Add Keywords"></RadzenButton>
                     </div>
                     <div class="form-group">
                         <button class="btn btn-primary">@Title Item</button>
@@ -55,6 +170,20 @@
     private ArchivalItemDTO ArchivalItemModel { get; set; } = new ArchivalItemDTO();
     private string Title { get; set; } = "Create";
     string htmlValue = "";
+    public bool KeywordTagOpen = false;
+
+    //Keywords
+    RadzenDataGrid<KeywordTagDTO> grid;
+    string keyword = "";
+
+    IEnumerable<KeywordTagDTO> keywords;
+    List<KeywordTagDTO> KeywordList = new List<KeywordTagDTO>();
+    IList<KeywordTagDTO> selectedKeywords;
+    IList<KeywordTagDTO> oldselectedKeywords;
+
+    IEnumerable<KeywordTagGroupDTO> filteredKeywordGroups = new List<KeywordTagGroupDTO>();
+    bool allowRowSelectOnRowClick = true;
+    KeywordTagGroupDTO doesArhcivalGroupExist;
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,7 +197,10 @@
         {
             ArchivalItemModel = new ArchivalItemDTO();
             ArchivalItemModel.Id = Guid.NewGuid().ToString();
+            ArchivalItemModel.ArchivalItemReference = Guid.NewGuid().ToString();
+            ArchivalItemModel.ArchivalItemCreationDate = DateTime.Now;
         }
+        keywords = await KeywordTagRepository.GetAllKeywordTags();
     }
 
     public async void HandleImageUpload(IFileListEntry[] files)
@@ -108,5 +240,82 @@
         }
 
         NavigationManager.NavigateTo("archive");
+    }
+
+    public async void OpenPopup()
+    {
+        KeywordTagOpen = true;
+        KeywordList.Clear();
+        selectedKeywords = null;
+
+        filteredKeywordGroups = await KeywordTagGroupRepository.GetAllKeywordTagGroupsByArchivalItemID(ArchivalItemModel.Id);
+
+        foreach (var unitStandardJoin in filteredKeywordGroups)
+        {
+            KeywordList.Add(await KeywordTagRepository.GetKeywordTag(unitStandardJoin.keywordTagID));
+        }
+
+        keywords.OrderBy(s => s.keywordTagName);
+        List<KeywordTagDTO> templist = new List<KeywordTagDTO>();
+
+        foreach (var standard in KeywordList)
+        {
+            templist.Add(keywords.FirstOrDefault(x => x.keywordTagName == standard.keywordTagName));
+        }
+
+        selectedKeywords = templist;
+        oldselectedKeywords = selectedKeywords;
+
+        //await Task.Delay(5000);
+
+        //foreach (var standard in selectedStandards)
+        //{
+        //    await grid.SelectRow(standard);
+        //}
+    }
+
+    public void ClosePopup()
+    {
+        KeywordTagOpen = false;
+
+        selectedKeywords = null;
+    }
+
+    public async void SaveSelectionPopup()
+    {
+        KeywordTagOpen = false;
+        KeywordTagGroupDTO unitstandardjoin = new KeywordTagGroupDTO();
+
+        foreach (var oldstandard in oldselectedKeywords)
+        {
+            if (!selectedKeywords.Contains(oldstandard))
+            {
+                doesArhcivalGroupExist = await KeywordTagGroupRepository.DoesKeywordTagGroupExist(oldstandard.keywordTagName, ArchivalItemModel.Id);
+                if (doesArhcivalGroupExist != null)
+                {
+                    await KeywordTagGroupRepository.DeleteKeywordTagGroup(doesArhcivalGroupExist.keywordTagGroupID);
+                }
+            }
+        }
+
+        foreach (var standard in selectedKeywords)
+        {
+
+            if (filteredKeywordGroups.Any(x => x.keywordTagName == standard.keywordTagName && x.ArchivalItemID == ArchivalItemModel.Id))
+            {
+
+            }
+
+            else
+            {
+                unitstandardjoin.keywordTagGroupID = Guid.NewGuid().ToString();
+                unitstandardjoin.keywordTagID = standard.keywordTagID;
+                unitstandardjoin.keywordTagName = standard.keywordTagName;
+                unitstandardjoin.ArchivalItemID = ArchivalItemModel.Id;
+                await KeywordTagGroupRepository.CreateKeywordTagGroup(unitstandardjoin);
+            }
+
+
+        }
     }
 }

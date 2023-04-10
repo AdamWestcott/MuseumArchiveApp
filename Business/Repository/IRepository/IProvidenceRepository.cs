@@ -15,6 +15,6 @@ namespace Business.Repository.IRepository
         public Task<string> DeleteProvidence(string providenceId);
         public Task<IEnumerable<ProvidenceDTO>> GetAllProvidences();
         public Task<IEnumerable<ProvidenceDTO>> GetAllProvidencesByArchivalItemID(string archivalItemId);
-        public Task<ProvidenceDTO> IsArchivalItemUnique(string providenceemName);
+        public Task<ProvidenceDTO> IsProvidenceUnique(string providenceemName);
     }
 }

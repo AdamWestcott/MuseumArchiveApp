@@ -14,7 +14,12 @@ namespace DataAccess.Data
         [Required]
         public byte[] ArchivalItemImage { get; set; }
         [Required]
+        public string ArchivalItemReference { get; set; }
+        [Required]
         public string ArchivalItemName { get; set; }
+
+        [Required]
+        public DateTime ArchivalItemCreationDate{ get; set; }
         [Required]
         public string ArchivalItemShortDescription { get; set; }
         [Required]

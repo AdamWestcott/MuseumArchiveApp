@@ -14,6 +14,10 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+.rz-button.btn-primary {
+    background-color: #1B6EC2 !important;
+}
+
 .content {
     padding-top: 1.1rem;
 }

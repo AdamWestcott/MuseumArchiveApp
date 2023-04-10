@@ -12,6 +12,8 @@ namespace DataAccess.Data
         [Key]
         public string Id { get; set; }
         [Required]
+        public string ArchivalItemID { get; set; }
+        [Required]
         public byte[] ProvidenceImage { get; set; }
         [Required]
         public string ProvidenceName { get; set; }
