@@ -23,6 +23,10 @@
                         <label>Upload Image of Item</label>
                         <button type="button" class="btn btn-primary" onclick="document.getElementById('picker').click()">Choose Image</button>
                         <BlazorInputFile.InputFile id="picker" OnChange="@(e => HandleImageUpload(e))" accept=".jpg, .jpeg, .png" hidden></BlazorInputFile.InputFile>
+                        @if (IsProvidenceImageSet == true)
+                        {
+                            <RadzenImage Path="@ProvidenceImageBase64" style="width: 80px; height: 80px; border-radius: 8px;"></RadzenImage>
+                        }
                     </div>
                     <div class="form-group">
                         <label>Name</label>
@@ -55,6 +59,8 @@
     private ProvidenceDTO ProvidenceModel { get; set; } = new ProvidenceDTO();
     private string Title { get; set; } = "Create";
     string htmlValue = "";
+    public bool IsProvidenceImageSet = false;
+    string ProvidenceImageBase64 = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,6 +68,8 @@
         {
             Title = "Update";
             ProvidenceModel = await ProvidenceRepository.GetProvidence(Id);
+            ProvidenceImageBase64 = "data:image/jpg;base64, " + Convert.ToBase64String(ProvidenceModel.ProvidenceImage);
+            IsProvidenceImageSet = true;
         }
 
         else
@@ -78,6 +86,8 @@
     public async void HandleImageUpload(IFileListEntry[] files)
     {
         ProvidenceModel.ProvidenceImage = await FileSender(files.FirstOrDefault());
+        ProvidenceImageBase64 = "data:image/jpg;base64, " + Convert.ToBase64String(ProvidenceModel.ProvidenceImage);
+        IsProvidenceImageSet = true;
     }
 
     public async Task<byte[]> FileSender(IFileListEntry file)

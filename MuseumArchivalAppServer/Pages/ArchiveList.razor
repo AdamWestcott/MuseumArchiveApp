@@ -246,7 +246,10 @@
             foreach (var keywordGroupArchivalID in keywordgroupIds)
             {
                 tempArchivalItem = await ArchivalRepository.GetArchivalItem(keywordGroupArchivalID);
-                SimilarArchivalItems.Add(tempArchivalItem);
+                if (!SimilarArchivalItems.Any(prod => prod.Id == keywordGroupArchivalID))
+                {
+                    SimilarArchivalItems.Add(tempArchivalItem);
+                }
             }
         }
         StateHasChanged();

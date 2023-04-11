@@ -131,6 +131,10 @@
                         <label>Upload Image of Item</label>
                         <button type="button" class="btn btn-primary" onclick="document.getElementById('picker').click()">Choose Image</button>
                         <BlazorInputFile.InputFile id="picker" OnChange="@(e => HandleImageUpload(e))" accept=".jpg, .jpeg, .png" hidden></BlazorInputFile.InputFile>
+                        @if(IsArchivalImageSet == true)
+                         {
+                            <RadzenImage Path="@ArchivalImageBase64" style="width: 80px; height: 80px; border-radius: 8px;"></RadzenImage>
+                         }
                     </div>
                     <div class="form-group">
                         <label>Item Name</label>
@@ -171,7 +175,8 @@
     private string Title { get; set; } = "Create";
     string htmlValue = "";
     public bool KeywordTagOpen = false;
-
+    public bool IsArchivalImageSet = false;
+    string ArchivalImageBase64 = "";
     //Keywords
     RadzenDataGrid<KeywordTagDTO> grid;
     string keyword = "";
@@ -191,6 +196,8 @@
         {
             Title = "Update";
             ArchivalItemModel = await ArchivalRepository.GetArchivalItem(Id);
+            ArchivalImageBase64 = "data:image/jpg;base64, " + Convert.ToBase64String(ArchivalItemModel.ArchivalItemImage);
+            IsArchivalImageSet = true;
         }
 
         else
@@ -206,6 +213,8 @@
     public async void HandleImageUpload(IFileListEntry[] files)
     {
         ArchivalItemModel.ArchivalItemImage = await FileSender(files.FirstOrDefault());
+        ArchivalImageBase64 = "data:image/jpg;base64, " + Convert.ToBase64String(ArchivalItemModel.ArchivalItemImage);
+        IsArchivalImageSet = true;
     }
 
     public async Task<byte[]> FileSender(IFileListEntry file)
