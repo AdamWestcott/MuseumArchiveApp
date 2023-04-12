@@ -50,6 +50,11 @@
                         @data.ArchivalItemShortDescription
                     </Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitDescription" Title="Creation Date" Filterable="false">
+                    <Template>
+                        @data.ArchivalItemCreationDate
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Title="Action">
                     <Template>
                         <RadzenLink href="javascript:void(0)" Icon="ads_click" Style="text-decoration: none; color: #416FE9; font-size: 2em;" @onclick="@(e => SelectArchivalItem(data.Id))"></RadzenLink>
