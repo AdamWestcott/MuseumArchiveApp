@@ -3,14 +3,16 @@ using System;
 using DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230517212618_RemovedItemsFromProvidenceTable")]
+    partial class RemovedItemsFromProvidenceTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,29 +46,9 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("CollectionId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsPartOfACollection")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.ToTable("ArchivalItems");
-                });
-
-            modelBuilder.Entity("DataAccess.Data.Collection", b =>
-                {
-                    b.Property<string>("CollectionID")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CollectionName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("CollectionID");
-
-                    b.ToTable("Collections");
                 });
 
             modelBuilder.Entity("DataAccess.Data.KeywordTag", b =>

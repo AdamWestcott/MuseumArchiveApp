@@ -25,6 +25,12 @@ namespace Business.Mapper
 
             CreateMap<KeywordTagGroupDTO, KeywordTagGroup>();
             CreateMap<KeywordTagGroup, KeywordTagGroupDTO>();
+
+            CreateMap<ProvenanceRecordDTO, ProvenanceRecord>();
+            CreateMap<ProvenanceRecord, ProvenanceRecordDTO>();
+
+            CreateMap<CollectionDTO, Collection>();
+            CreateMap<Collection, CollectionDTO>();
         }
     }
 }

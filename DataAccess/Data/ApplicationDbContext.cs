@@ -18,5 +18,9 @@ namespace DataAccess.Data
         public DbSet<KeywordTag> KeywordTags { get; set; }
 
         public DbSet<KeywordTagGroup> KeywordTagGroups { get; set; }
+
+        public DbSet<ProvenanceRecord> ProvenanceRecords { get; set; }
+
+        public DbSet<Collection> Collections { get; set; }
     }
 }

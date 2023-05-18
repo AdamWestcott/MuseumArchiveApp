@@ -7,18 +7,22 @@
 @using System.IO;
 @using Radzen
 @using Radzen.Blazor
+@using Telerik.Blazor
+@using Telerik.Blazor.Components
 @*@using Radzen
     @using Radzen.Blazor*@
 @using BlazorInputFile
 @inject IArchivalItemRepository ArchivalRepository
 @inject IKeywordTagRepository KeywordTagRepository
 @inject IKeywordTagGroupRepository KeywordTagGroupRepository
+@inject ICollectionRepository CollectionRepository
 @inject NavigationManager NavigationManager
 
 <style>
     .rz-button.btn-primary {
         background-color: #1B6EC2 !important;
     }
+
     #svfmodal {
         display: flex
     }
@@ -131,10 +135,10 @@
                         <label>Upload Image of Item</label>
                         <button type="button" class="btn btn-primary" onclick="document.getElementById('picker').click()">Choose Image</button>
                         <BlazorInputFile.InputFile id="picker" OnChange="@(e => HandleImageUpload(e))" accept=".jpg, .jpeg, .png" hidden></BlazorInputFile.InputFile>
-                        @if(IsArchivalImageSet == true)
-                         {
+                        @if (IsArchivalImageSet == true)
+                        {
                             <RadzenImage Path="@ArchivalImageBase64" style="width: 80px; height: 80px; border-radius: 8px;"></RadzenImage>
-                         }
+                        }
                     </div>
                     <div class="form-group">
                         <label>Item Name</label>
@@ -150,9 +154,28 @@
                     </div>
                     <div class="form-group">
                         <label>Item Long Description</label>
-                        <RadzenHtmlEditor @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" Disabled="false" Style="height: 300px; margin-bottom: 1rem; background-color: lightgray"></RadzenHtmlEditor>
+                        <RadzenHtmlEditor @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" Disabled="false" Style="height: auto; margin-bottom: 1rem; background-color: lightgray"></RadzenHtmlEditor>
                         @*<InputText @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" class="form-control"></InputText>*@
                     </div>
+                    <div class="form-group">
+                        <label>Is the Item Part of a Collection?</label>
+                        <RadzenCheckBox @bind-Value="ArchivalItemModel.IsPartOfACollection" Disabled="false" Style="margin-bottom: 1rem; background-color: lightgray"></RadzenCheckBox>
+                        @*<InputText @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" class="form-control"></InputText>*@
+                    </div>
+                    @if (ArchivalItemModel.IsPartOfACollection == true)
+                    {
+                        <div class="form-group">
+                            <label>Collection</label>
+                            <TelerikDropDownList Data="@collectionsList"
+                                                 @bind-Value="@ArchivalItemModel.CollectionId"
+                                                 TextField="CollectionName"
+                                                 ValueField="CollectionID"
+                                                 DefaultText="Select Collection"
+                                                 Width="100%">
+                            </TelerikDropDownList>
+                            @*<InputText @bind-Value="ArchivalItemModel.ArchivalItemLongDescription" class="form-control"></InputText>*@
+                        </div>
+                    }
                     <div class="form-group">
                         <label>Keywords</label>
                         <RadzenButton Click="@(e => OpenPopup())" class="btn btn-primary" Style="width:auto" Text="Add Keywords"></RadzenButton>
@@ -180,6 +203,7 @@
     //Keywords
     RadzenDataGrid<KeywordTagDTO> grid;
     string keyword = "";
+    string collectionName = "";
 
     IEnumerable<KeywordTagDTO> keywords;
     List<KeywordTagDTO> KeywordList = new List<KeywordTagDTO>();
@@ -189,6 +213,9 @@
     IEnumerable<KeywordTagGroupDTO> filteredKeywordGroups = new List<KeywordTagGroupDTO>();
     bool allowRowSelectOnRowClick = true;
     KeywordTagGroupDTO doesArhcivalGroupExist;
+
+    IEnumerable<CollectionDTO> collections;
+    List<CollectionDTO> collectionsList = new List<CollectionDTO>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -208,6 +235,8 @@
             ArchivalItemModel.ArchivalItemCreationDate = DateTime.Now;
         }
         keywords = await KeywordTagRepository.GetAllKeywordTags();
+        collections = await CollectionRepository.GetAllCollections();
+        collectionsList = collections.ToList();
     }
 
     public async void HandleImageUpload(IFileListEntry[] files)
@@ -231,6 +260,18 @@
     {
         try
         {
+            if (ArchivalItemModel.CollectionId == "")
+            {
+                //update
+                ArchivalItemModel.IsPartOfACollection = false;
+            }
+
+            if (ArchivalItemModel.IsPartOfACollection == false)
+            {
+                //update
+                ArchivalItemModel.CollectionId = "";
+            }
+
             if ((ArchivalItemModel.Id != "") && Title == "Update")
             {
                 //update

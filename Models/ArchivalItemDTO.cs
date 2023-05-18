@@ -24,5 +24,10 @@ namespace Models
         public string ArchivalItemShortDescription { get; set; }
         [Required]
         public string ArchivalItemLongDescription { get; set; }
+
+        [Required]
+        public bool IsPartOfACollection { get; set; }
+
+        public string CollectionId { get; set; }
     }
 }

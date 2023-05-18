@@ -5,17 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models
+namespace DataAccess.Data
 {
-    public class ProvidenceDTO
+    public class Collection
     {
-        [Key]
-        public string Id { get; set; }
-
         [Required]
-        public string ArchivalItemID { get; set; }
-
+        public string CollectionID { get; set; }
         [Required]
-        public string ProvidenceName { get; set; }
+        public string CollectionName { get; set; }
     }
 }

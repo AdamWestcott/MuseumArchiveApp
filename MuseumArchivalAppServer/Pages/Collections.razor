@@ -1,0 +1,153 @@
+﻿@page "/Collections"
+@using Models
+@using Business.Repository.IRepository
+@using System;
+@using System.Net;
+@using System.IO;
+@using Radzen
+@using Radzen.Blazor
+@using Telerik.Blazor
+@using Telerik.Blazor.Components
+@*@using Radzen
+    @using Radzen.Blazor*@
+@using BlazorInputFile
+@inject IArchivalItemRepository ArchivalRepository
+@inject IKeywordTagRepository KeywordTagRepository
+@inject IKeywordTagGroupRepository KeywordTagGroupRepository
+@inject ICollectionRepository CollectionRepository
+@inject NavigationManager NavigationManager
+
+    <style>
+        #svfmodal {
+            display: flex
+        }
+
+        .modal-fullscreen {
+            width: 100vw;
+            max-width: none;
+            height: 100%;
+            margin: 0;
+            overflow-y: hidden;
+            padding-right: 15px;
+            padding-left: 15px;
+            padding-top: 15px
+        }
+
+        .modal-dialog {
+            position: initial;
+        }
+
+        .modal-header {
+            border-bottom: 0px !important;
+        }
+
+        body.modal-open {
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .my-custom-actions .k-window-titlebar {
+            background: linear-gradient(180deg, rgb(5, 39, 103) 0%, #416FE9 70%) !important;
+            /*color: green !important;     ----->Colour of Text*/
+        }
+
+        customfloat {
+            float: right !important;
+        }
+
+        .checkbox-style {
+            border-color: black;
+        }
+
+            .checkbox-style:checked {
+                border-color: black;
+            }
+
+        .numeric-style {
+            border-color: black;
+        }
+    </style>
+    <div class="col-8">
+        <h4 class="card-title text-info">Collections</h4>
+    </div>
+<br />
+<TelerikDropDownList Data="@collectionsList"
+                     @bind-Value="@CollectionID"
+                     OnChange="selectCollection"
+                     TextField="CollectionName"
+                     ValueField="CollectionID"
+                     DefaultText="Select Collection"
+                     Width="100%">
+</TelerikDropDownList>
+<br />
+@if (isCollectionSelected == true)
+{
+    <br />
+    <RadzenDataGrid @ref="radzenArchivalItemGrid" AllowSorting="true" AllowFiltering="true" FilterMode="Radzen.FilterMode.Simple"
+                    Data="@ArchivalItems" TItem="ArchivalItemDTO" FilterCaseSensitivity="Radzen.FilterCaseSensitivity.CaseInsensitive"
+                    LogicalFilterOperator="Radzen.LogicalFilterOperator.Or" AllowPaging="true" PageSize="5" AllowColumnResize="true">
+        <Columns>
+            <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Title="Image"
+                                  Width="250px" Filterable="false">
+                <Template>
+                    @if (data.ArchivalItemImage != null)
+                    {
+                        //getUnitImage(data.UnitId);
+                        archivalImage = "data:image/jpg;base64, " + Convert.ToBase64String(data.ArchivalItemImage);
+                    }
+                    <RadzenImage Path="@archivalImage" style="width: 80px; height: 80px; border-radius: 8px;"></RadzenImage>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitName" Title="Name" Filterable="false">
+                <Template>
+                    @data.ArchivalItemName
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitDescription" Title="Brief Description" Filterable="false">
+                <Template>
+                    @data.ArchivalItemShortDescription
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitDescription" Title="Creation Date" Filterable="false">
+                <Template>
+                    @data.ArchivalItemCreationDate
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Title="Action">
+                <Template>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code {
+    string CollectionID = "";
+    bool isCollectionSelected = false;
+    IEnumerable<CollectionDTO> collections;
+    List<CollectionDTO> collectionsList = new List<CollectionDTO>();
+    private IEnumerable<ArchivalItemDTO> ArchivalItems { get; set; } = new List<ArchivalItemDTO>();
+    RadzenDataGrid<ArchivalItemDTO> radzenArchivalItemGrid;
+    string archivalImage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        collections = await CollectionRepository.GetAllCollections();
+        collectionsList = collections.ToList();
+    }
+
+    public async void selectCollection()
+    {
+        isCollectionSelected = true;
+        ArchivalItems = await ArchivalRepository.GetAllArchivalItems();
+        ArchivalItems = ArchivalItems.Where(x => x.CollectionId == CollectionID);
+    }
+}

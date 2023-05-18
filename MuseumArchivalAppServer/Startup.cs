@@ -53,6 +53,8 @@ namespace MuseumArchivalAppServer
             services.AddScoped<IProvidenceRepository, ProvidenceRepository>();
             services.AddScoped<IKeywordTagRepository, KeywordTagRepository>();
             services.AddScoped<IKeywordTagGroupRepository, KeywordTagGroupRepository>();
+            services.AddScoped<IProvenanceRecordRepository, ProvenanceRecordRepository>();
+            services.AddScoped<ICollectionRepository, CollectionRepository>();
             services.AddSingleton<StoredItems>();
             services.AddRazorPages();
             services.AddServerSideBlazor();
@@ -60,6 +62,7 @@ namespace MuseumArchivalAppServer
             services.AddScoped<NotificationService>();
             services.AddScoped<TooltipService>();
             services.AddScoped<ContextMenuService>();
+            services.AddTelerikBlazor();
             services.AddSingleton<WeatherForecastService>();
             services.Configure<IISServerOptions>(options =>
             {

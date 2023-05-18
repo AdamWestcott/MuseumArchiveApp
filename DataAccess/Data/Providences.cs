@@ -14,12 +14,6 @@ namespace DataAccess.Data
         [Required]
         public string ArchivalItemID { get; set; }
         [Required]
-        public byte[] ProvidenceImage { get; set; }
-        [Required]
         public string ProvidenceName { get; set; }
-        [Required]
-        public DateTime ProvidenceDateOfPurchase { get; set; }
-        [Required]
-        public double PurchaseValue { get; set; }
     }
 }

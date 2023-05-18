@@ -7,15 +7,11 @@ using System.Threading.Tasks;
 
 namespace Models
 {
-    public class ProvidenceDTO
+    public class CollectionDTO
     {
-        [Key]
-        public string Id { get; set; }
-
         [Required]
-        public string ArchivalItemID { get; set; }
-
+        public string CollectionID { get; set; }
         [Required]
-        public string ProvidenceName { get; set; }
+        public string CollectionName { get; set; }
     }
 }

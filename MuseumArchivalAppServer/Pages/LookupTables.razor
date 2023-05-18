@@ -4,6 +4,7 @@
 @using Models;
 @using Business.Repository.IRepository
 @inject IKeywordTagRepository KeywordRepository
+@inject ICollectionRepository CollectionRepository
 @inject MuseumArchivalAppServer.Areas.StoredModel.StoredItems stored
 <style>
 
@@ -16,7 +17,7 @@
         }
 </style>
 
-<h1 style="color:white","text-align:center">LookUp Tables</h1>
+<h1 style="color:white" ,"text-align:center">LookUp Tables</h1>
 <br />
 <br />
 
@@ -25,7 +26,73 @@
         <RadzenTabsItem Text="Tables A-E">
             <RadzenTabs>
                 <Tabs>
+                    <RadzenTabsItem Text="Collections">
+                        @if (CollectionAddEdit == false)
+                        {
+                            <div class="col-12">
 
+                                <RadzenButton Click="AddCollection" class="btn btn-primary" Style="width:auto">Add Collection</RadzenButton>
+
+                                @if (selectedCollections != null)
+                                {
+
+                                    @if (selectedCollections.Count() == 1)
+                                    {
+                                        <RadzenButton Click="@(e => EditCollection(selectedCollections.FirstOrDefault().CollectionID))" class="btn btn-primary">Edit</RadzenButton>
+                                    }
+
+                                    @if (selectedCollections.Count() >= 1)
+                                    {
+                                        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Primary" class="btn btn-primary" Click="@(e => HandleCollectionDelete())" Style="max-height:auto"></RadzenButton>
+                                    }
+                                }
+                            </div>
+                            <br />
+                            <br />
+                            <RadzenDataGrid @ref="CollectionGrid" AllowSorting="true" Data="@collections" TItem="CollectionDTO" AllowPaging="true" AllowFiltering="true" FilterMode="Radzen.FilterMode.Simple"
+                                            PageSize="6" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" SelectionMode="DataGridSelectionMode.Multiple"
+                                            @bind-Value=@selectedCollections>
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="CollectionDTO" Width="40px" Sortable="false" Filterable="false">
+                                        <Template Context="data">
+                                            <RadzenCheckBox TriState="false" Value="@(selectedCollections != null && selectedCollections.Contains(data))"
+                                                            TValue="bool" Change=@(args => { CollectionGrid.SelectRow(data); }) />
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="CollectionDTO" Context="data" Title="Collection" Filterable="true">
+                                        <Template>
+                                            @data.CollectionName
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        }
+
+                        else if (CollectionAddEdit == true)
+                        {
+                            <div class="row mt-2 mb-5">
+                                <h3 class="card-title text-black mb-3 ml-3">@Title Collection</h3>
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <EditForm Model="Collection" OnValidSubmit="CollectionUpsert">
+                                                <DataAnnotationsValidator />
+                                                <ValidationSummary />
+                                                <div class="form-group">
+                                                    <label>Collection</label>
+                                                    <InputText @bind-Value="Collection.CollectionName" class="form-control"></InputText>
+                                                </div>
+                                                <div class="form-group">
+                                                    <button class="btn btn-primary">Save</button>
+                                                    <button @onclick="BackToCollectionTable" type="button" class="btn btn-secondary">Back</button>
+                                                </div>
+                                            </EditForm>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </RadzenTabsItem>
                 </Tabs>
             </RadzenTabs>
         </RadzenTabsItem>
@@ -127,11 +194,19 @@
     IList<KeywordTagDTO> selectedKeywordTags;
     RadzenDataGrid<KeywordTagDTO> KeywordTagGrid;
 
+    bool CollectionAddEdit = false;
+    IEnumerable<CollectionDTO> collections = new List<CollectionDTO>();
+    CollectionDTO Collection = new CollectionDTO();
+    IList<CollectionDTO> selectedCollections;
+    RadzenDataGrid<CollectionDTO> CollectionGrid;
+
     protected override async Task OnInitializedAsync()
     {
         keywordTags = await KeywordRepository.GetAllKeywordTags();
+        collections = await CollectionRepository.GetAllCollections();
     }
 
+    //Keyword Tags
     public void AddKeywordTag()
     {
         Title = "Create";
@@ -192,6 +267,70 @@
 
         selectedKeywordTags = null;
         keywordTags = await KeywordRepository.GetAllKeywordTags();
+        StateHasChanged();
+    }
+
+    //Collections
+    public void AddCollection()
+    {
+        Title = "Create";
+        Collection = new CollectionDTO();
+        CollectionAddEdit = true;
+        Collection.CollectionID = Guid.NewGuid().ToString();
+    }
+
+    public async void EditCollection(string collectionId)
+    {
+        Title = "Update";
+        Collection = await CollectionRepository.GetCollection(collectionId);
+        CollectionAddEdit = true;
+        StateHasChanged();
+
+    }
+
+    public void BackToCollectionTable()
+    {
+        CollectionAddEdit = false;
+        StateHasChanged();
+    }
+
+    public async void CollectionUpsert()
+    {
+        try
+        {
+            if ((Collection.CollectionID != null && Title == "Update"))
+            {
+                //update
+                var UpdateUnitCurrency = await CollectionRepository.UpdateCollection(Collection.CollectionID, Collection);
+            }
+
+            else
+            {
+                var CreatedUnitCurrency = await CollectionRepository.CreateCollection(Collection);
+            }
+
+        }
+        catch
+        {
+
+        }
+
+        CollectionAddEdit = false;
+        selectedCollections = null;
+        collections = await CollectionRepository.GetAllCollections();
+        StateHasChanged();
+    }
+
+    private async Task HandleCollectionDelete()
+    {
+        foreach (var unitCurrency in selectedCollections)
+        {
+            DeleteID = unitCurrency.CollectionID;
+            var DeleteUnitCurrency = await CollectionRepository.DeleteCollection(DeleteID);
+        }
+
+        selectedCollections = null;
+        collections = await CollectionRepository.GetAllCollections();
         StateHasChanged();
     }
 }

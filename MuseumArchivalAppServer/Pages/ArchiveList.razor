@@ -6,6 +6,7 @@
 @using Telerik
 @using Telerik.Blazor.Components
 @inject IArchivalItemRepository ArchivalRepository
+@inject IProvenanceRecordRepository ProvenanceRepository
 @inject IProvidenceRepository ProvidenceRepository
 @inject IKeywordTagRepository KeywordTagRepository
 @inject IKeywordTagGroupRepository KeywordTagGroupRepository
@@ -15,13 +16,15 @@
 
 <div class=" row mt-4">
     <div class="col-8">
-        <h4 class="card-title text-info">Archival</h4>
+        <h4 class="card-title text-info">Archive</h4>
     </div>
     <div class="col-3 offset-1">
         <NavLink href="archive/create" class="btn btn-info form-control">Add New Item</NavLink>
     </div>
 </div>
 <RadzenDropDown @bind-Value=@keywordNamesFilterList Data=@keywordsForFilter Multiple=true AllowClear=true Placeholder="Filter Table" Chips=true Style="width: 100%; max-width: 400px;" Change="changeFilter" />
+<RadzenTextBox @bind-Value=@TableSearch  Placeholder="Filter Table" Style="width: 100%; max-width: 400px;" Change="changeFilter" /> 
+<RadzenButton type="button" class="btn btn-primary" Click="changeFilterText">Filter Table</RadzenButton>
 <div class="row mt-4">
     <div class="col-12">
         <RadzenDataGrid @ref="radzenArchivalItemGrid" AllowSorting="true" AllowFiltering="true" FilterMode="Radzen.FilterMode.Simple"
@@ -39,8 +42,7 @@
                         <RadzenImage Path="@archivalImage" style="width: 80px; height: 80px; border-radius: 8px;"></RadzenImage>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitName" Title="Name"
-                                      Width="250px" Filterable="true">
+                <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitName" Title="Name" Filterable="false">
                     <Template>
                         @data.ArchivalItemName
                     </Template>
@@ -71,61 +73,89 @@
         <br />
         <br />
         <div class="col-8">
-            <h2 class="card-title text-info">@ArchivalItemName</h2>
-            <h4 class="card-title text-info">Reference: @ArchivalItemReference</h4>
+            <h1 class="card-title text-info">@ArchivalItemName</h1>
+            @*<h4 class="card-title text-info">Reference: @ArchivalItemReference</h4>*@
         </div>
         <br />
         <RadzenTabs>
             <Tabs>
-                <RadzenTabsItem Text="Providences">
-                    <div class=" row mt-4">
-                        <div class="col-8">
-                            <h4 class="card-title text-info">Providences</h4>
+                <RadzenTabsItem Text="Provenance">
+                    @if (isProvenanceCreated == true)
+                    {
+                    <h2 class="card-title text-info">@CreatedProvidence.ProvidenceName</h2>
+                        <div class=" row mt-4">
+                            <div class="col-8">
+
+                                <h4 class="card-title text-info">Provenance Records</h4>
+                            </div>
+                            <div class="col-3 offset-1">
+                                <NavLink href="provenanceRecord/create" class="btn btn-info form-control">Add New Provenance Record</NavLink>
+                            </div>
                         </div>
-                        <div class="col-3 offset-1">
-                            <NavLink href="providence/create" class="btn btn-info form-control">Add New Providence</NavLink>
+                        <RadzenDataGrid @ref="radzenProvidenceGrid" AllowSorting="true" AllowFiltering="false" FilterMode="Radzen.FilterMode.Simple"
+                                        Data="@FilteredProvenanceRecords" TItem="ProvenanceRecordDTO" FilterCaseSensitivity="Radzen.FilterCaseSensitivity.CaseInsensitive"
+                                        LogicalFilterOperator="Radzen.LogicalFilterOperator.Or" AllowPaging="true" PageSize="5" AllowColumnResize="true">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="ProvenanceRecordDTO" Context="data" Title="Image"
+                                                      Width="250px" Filterable="false">
+                                    <Template>
+                                        @if (data.ProvenanceRecordImage != null)
+                                        {
+                                            //getUnitImage(data.UnitId);
+                                            providenceImage = "data:image/jpg;base64, " + Convert.ToBase64String(data.ProvenanceRecordImage);
+                                        }
+                                        <RadzenImage Path="@providenceImage" style="width: 80px; height: 80px; border-radius: 8px;"></RadzenImage>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="ProvenanceRecordDTO" Context="data" Title="Name" Filterable="false">
+                                    <Template>
+                                        @data.ProvenanceName
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="ProvenanceRecordDTO" Context="data" Property="DateOfPurchase" Title="Date of Purchase" Filterable="false">
+                                    <Template>
+                                        @data.ProvenanceDateOfPurchase.Date
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="ProvenanceRecordDTO" Context="data" Property="PurchaseValue" Title="Purchase Value" Filterable="false">
+                                    <Template>
+                                        @data.PurchaseValue
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="ProvenanceRecordDTO" Context="data" Title="Action">
+                                    <Template>
+                                        @*<RadzenLink href="javascript:void(0)" Icon="ads_click" Style="text-decoration: none; color: #416FE9; font-size: 2em;" @onclick="@(e => SelectUnit(data.UnitId))"></RadzenLink>*@
+                                        <RadzenLink href="@($"provenanceRecord/edit/{data.Id}")" Icon="edit" Style="text-decoration: none; color: #416FE9; font-size: 2em;"></RadzenLink>
+                                        <RadzenLink href="javascript:void(0)" Icon="delete" Style="text-decoration: none; color: #416FE9; font-size: 2em;" @onclick="@(e => HandleProvidenceDelete(data.Id))"></RadzenLink>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    }
+                    else
+                    {
+                        <div class="row mt-2 mb-5">
+                            <h3 class="card-title text-info mb-3 ml-3">@Title Provenance</h3>
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <EditForm Model="ProvidenceModel" OnValidSubmit="ProvidenceHandlerUpsert">
+                                            <DataAnnotationsValidator />
+                                            <ValidationSummary />
+                                            <div class="form-group">
+                                                <label>Name</label>
+                                                <InputText @bind-Value="ProvidenceModel.ProvidenceName" class="form-control"></InputText>
+                                            </div>
+                                            <div class="form-group">
+                                                <button class="btn btn-primary">@Title Provenance</button>
+                                            </div>
+                                        </EditForm>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <RadzenDataGrid @ref="radzenProvidenceGrid" AllowSorting="true" AllowFiltering="true" FilterMode="Radzen.FilterMode.Simple"
-                                    Data="@FilteredProvidences" TItem="ProvidenceDTO" FilterCaseSensitivity="Radzen.FilterCaseSensitivity.CaseInsensitive"
-                                    LogicalFilterOperator="Radzen.LogicalFilterOperator.Or" AllowPaging="true" PageSize="5" AllowColumnResize="true">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="ProvidenceDTO" Context="data" Title="Image"
-                                                  Width="250px" Filterable="false">
-                                <Template>
-                                    @if (data.ProvidenceImage != null)
-                                    {
-                                        //getUnitImage(data.UnitId);
-                                        providenceImage = "data:image/jpg;base64, " + Convert.ToBase64String(data.ProvidenceImage);
-                                    }
-                                    <RadzenImage Path="@providenceImage" style="width: 80px; height: 80px; border-radius: 8px;"></RadzenImage>
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="ProvidenceDTO" Context="data" Property="Name" Title="Name"
-                                                  Width="250px" Filterable="true">
-                                <Template>
-                                    @data.ProvidenceName
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="ProvidenceDTO" Context="data" Property="DateOfPurchase" Title="Date of Purchase" Filterable="false">
-                                <Template>
-                                    @data.ProvidenceDateOfPurchase.Date
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="ProvidenceDTO" Context="data" Property="PurchaseValue" Title="Purchase Value" Filterable="false">
-                                <Template>
-                                    @data.PurchaseValue
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="ProvidenceDTO" Context="data" Title="Action">
-                                <Template>
-                                    @*<RadzenLink href="javascript:void(0)" Icon="ads_click" Style="text-decoration: none; color: #416FE9; font-size: 2em;" @onclick="@(e => SelectUnit(data.UnitId))"></RadzenLink>*@
-                                    <RadzenLink href="@($"providence/edit/{data.Id}")" Icon="edit" Style="text-decoration: none; color: #416FE9; font-size: 2em;"></RadzenLink>
-                                    <RadzenLink href="javascript:void(0)" Icon="delete" Style="text-decoration: none; color: #416FE9; font-size: 2em;" @onclick="@(e => HandleProvidenceDelete(data.Id))"></RadzenLink>
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
+
+                    }
                 </RadzenTabsItem>
                 <RadzenTabsItem Text="Similar Items">
                     <div class=" row mt-4">
@@ -133,7 +163,7 @@
                             <h4 class="card-title text-info">Similar Items</h4>
                         </div>
                     </div>
-                    <RadzenDataGrid @ref="radzenSimilarArchivalItemGrid" AllowSorting="true" AllowFiltering="true" FilterMode="Radzen.FilterMode.Simple"
+                    <RadzenDataGrid @ref="radzenSimilarArchivalItemGrid" AllowSorting="true" AllowFiltering="false" FilterMode="Radzen.FilterMode.Simple"
                                     Data="@SimilarArchivalItems" TItem="ArchivalItemDTO" FilterCaseSensitivity="Radzen.FilterCaseSensitivity.CaseInsensitive"
                                     LogicalFilterOperator="Radzen.LogicalFilterOperator.Or" AllowPaging="true" PageSize="5" AllowColumnResize="true">
                         <Columns>
@@ -149,7 +179,7 @@
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="ArchivalItemDTO" Context="data" Property="UnitName" Title="Name"
-                                                  Width="250px" Filterable="true">
+                                                  Width="250px" Filterable="false">
                                 <Template>
                                     @data.ArchivalItemName
                                 </Template>
@@ -180,8 +210,10 @@
     private IEnumerable<ArchivalItemDTO> AllArchivalItems { get; set; } = new List<ArchivalItemDTO>();
     private List<ArchivalItemDTO> FilteredArchivalItems { get; set; } = new List<ArchivalItemDTO>();
     private List<ArchivalItemDTO> SimilarArchivalItems { get; set; } = new List<ArchivalItemDTO>();
+    private ProvidenceDTO ProvidenceModel { get; set; } = new ProvidenceDTO();
     ArchivalItemDTO tempArchivalItem;
     ArchivalItemDTO SelectedArchivalItem;
+    ProvidenceDTO CreatedProvidence;
     private string DeleteID { get; set; } = null;
     string archivalImage = "";
     string ArchivalItemID = "";
@@ -189,8 +221,10 @@
     string ArchivalItemReference = "";
     string providenceImage = "";
     bool isArchivalItemSelected = false;
+    bool isProvenanceCreated = false;
     private IEnumerable<KeywordTagDTO> KeywordTags { get; set; } = new List<KeywordTagDTO>();
-    private IEnumerable<ProvidenceDTO> FilteredProvidences { get; set; } = new List<ProvidenceDTO>();
+    private IEnumerable<ProvidenceDTO> Providences{ get; set; } = new List<ProvidenceDTO>();
+    private IEnumerable<ProvenanceRecordDTO> FilteredProvenanceRecords { get; set; } = new List<ProvenanceRecordDTO>();
     private IEnumerable<KeywordTagGroupDTO> TempKeywordTagGroups { get; set; } = new List<KeywordTagGroupDTO>();
     private IEnumerable<KeywordTagGroupDTO> KeywordTagGroups { get; set; } = new List<KeywordTagGroupDTO>();
     private IEnumerable<KeywordTagGroupDTO> FilteredKeywordTagGroups { get; set; } = new List<KeywordTagGroupDTO>();
@@ -200,7 +234,9 @@
     List<string> keywordNamesFilterList = new List<string>();
     RadzenDataGrid<ArchivalItemDTO> radzenArchivalItemGrid;
     RadzenDataGrid<ArchivalItemDTO> radzenSimilarArchivalItemGrid;
-    RadzenDataGrid<ProvidenceDTO> radzenProvidenceGrid;
+    RadzenDataGrid<ProvenanceRecordDTO> radzenProvidenceGrid;
+    string Title = "Create";
+    string TableSearch = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -210,7 +246,7 @@
         KeywordTags = await KeywordTagRepository.GetAllKeywordTags();
         foreach (var keyword in KeywordTags)
         {
-            if(!keywordsForFilter.Contains(keyword.keywordTagName))
+            if (!keywordsForFilter.Contains(keyword.keywordTagName))
             {
                 keywordsForFilter.Add(keyword.keywordTagName);
             }
@@ -220,6 +256,7 @@
     public async void SelectArchivalItem(string archvialItemID)
     {
         isArchivalItemSelected = false;
+        isProvenanceCreated = false;
         StateHasChanged();
         keywordgroupIds.Clear();
         keywordNames.Clear();
@@ -228,9 +265,21 @@
         SelectedArchivalItem = await ArchivalRepository.GetArchivalItem(ArchivalItemID);
         ArchivalItemName = SelectedArchivalItem.ArchivalItemName;
         ArchivalItemReference = SelectedArchivalItem.ArchivalItemReference;
+        Providences = await ProvidenceRepository.GetAllProvidencesByArchivalItemID(ArchivalItemID);
+        if(Providences.Any())
+        {
+            isProvenanceCreated = true;
+            CreatedProvidence = Providences.First();
+            stored.setProvidenceID(CreatedProvidence.Id);
+            FilteredProvenanceRecords = await ProvenanceRepository.GetAllProvenanceRecordsByProvidenceID(CreatedProvidence.Id);
+        }
+        else
+        {
+            ProvidenceModel.Id = Guid.NewGuid().ToString();
+            ProvidenceModel.ArchivalItemID = ArchivalItemID;
+        }
         stored.setArchivalItemID(ArchivalItemID);
         FilteredKeywordTagGroups = await KeywordTagGroupRepository.GetAllKeywordTagGroupsByArchivalItemID(ArchivalItemID);
-        FilteredProvidences = await ProvidenceRepository.GetAllProvidencesByArchivalItemID(ArchivalItemID);
         foreach (var group in FilteredKeywordTagGroups)
         {
             keywordNames.Add(group.keywordTagName);
@@ -320,6 +369,44 @@
 
     }
 
+    public async void changeFilterText()
+    {
+        isArchivalItemSelected = false;
+        ArchivalItems = new List<ArchivalItemDTO>();
+        keywordgroupIds.Clear();
+        FilteredArchivalItems.Clear();
+        if (TableSearch != null)
+        {
+            foreach (var item in AllArchivalItems)
+            {
+
+                if (item.ArchivalItemName.ToLower().Contains(TableSearch.ToLower()))
+                {
+                    FilteredArchivalItems.Add(item);
+                }
+            }
+
+            ArchivalItems = FilteredArchivalItems;
+        }
+        else
+        {
+            ArchivalItems = AllArchivalItems;
+        }
+
+        if(TableSearch == "")
+        {
+            ArchivalItems = AllArchivalItems;
+        }
+        StateHasChanged();
+        if (radzenArchivalItemGrid != null)
+        {
+            await radzenArchivalItemGrid.Reload();
+        }
+        //await radzenSimilarArchivalItemGrid.Reload();
+        StateHasChanged();
+
+    }
+
     private async Task HandleDelete(string archivalItemID)
     {
         DeleteID = archivalItemID;
@@ -330,8 +417,34 @@
     private async Task HandleProvidenceDelete(string providenceID)
     {
         DeleteID = providenceID;
-        var DeleteEmployee = await ProvidenceRepository.DeleteProvidence(DeleteID);
+        var DeleteEmployee = await ProvenanceRepository.DeleteProvenanceRecord(DeleteID);
         NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private async Task ProvidenceHandlerUpsert()
+    {
+        try
+        {
+            if ((ProvidenceModel.Id != "") && Title == "Update")
+            {
+                //update
+                var UpdateEmployee = await ProvidenceRepository.UpdateProvidence(ProvidenceModel.Id, ProvidenceModel);
+            }
+
+            else
+            {
+                var CreatedEmployee = await ProvidenceRepository.CreateProvidence(ProvidenceModel);
+            }
+
+            CreatedProvidence = ProvidenceModel;
+            isProvenanceCreated = true;
+            FilteredProvenanceRecords = await ProvenanceRepository.GetAllProvenanceRecordsByProvidenceID(CreatedProvidence.Id);
+
+        }
+        catch
+        {
+
+        }
     }
 
 }

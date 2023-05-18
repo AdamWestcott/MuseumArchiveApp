@@ -8,6 +8,7 @@ namespace MuseumArchivalAppServer.Areas.StoredModel
     public class StoredItems
     {
         string ArchivalItemID = "";
+        string ProvidenceID = "";
 
         public void setArchivalItemID(string archivalItemID)
         {
@@ -17,6 +18,16 @@ namespace MuseumArchivalAppServer.Areas.StoredModel
         public string getArchivalItemID()
         {
             return ArchivalItemID;
+        }
+
+        public void setProvidenceID(string providenceID)
+        {
+            ProvidenceID = providenceID;
+        }
+
+        public string getProvidenceID()
+        {
+            return ProvidenceID;
         }
     }
 }
