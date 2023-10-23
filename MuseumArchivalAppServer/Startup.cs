@@ -80,6 +80,9 @@ namespace MuseumArchivalAppServer
             }) ;
             services.AddDbContext<ApplicationDbContext>(options =>
             {
+                //Add-Migration "TestMigration" -Context AppDbContext
+                //Update-Database -Context AppDbContext
+                //Remove-Migration -Context AppDbContext
                 options.UseSqlite("Data Source = Archive.db");
             });
         }

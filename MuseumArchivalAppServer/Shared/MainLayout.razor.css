@@ -7,7 +7,7 @@
 
 .main {
     flex: 1;
-    background-image: url("/Pictures/sitebackground.jpg")
+    /*background-image: url("/Pictures/sitebackground.jpg")*/
     /*background-color: #cccccc;*/
 }
 
@@ -15,11 +15,11 @@
     background-image: linear-gradient(180deg, rgb(32, 38, 57) 11.4%, rgb(63, 76, 119) 70.2%);
 }
 .page-background-class {
-    background-image: url("/Pictures/sitebackground.jpg")
+    /*background-image: url("/Pictures/sitebackground.jpg")*/
 }
 
 body {
-    background-image: url("/Pictures/sitebackground.jpg");
+   /* background-image: url("/Pictures/sitebackground.jpg");*/
     background-color: #cccccc;
 }
 
@@ -30,7 +30,7 @@ body {
     height: 3.5rem;
     display: flex;
     align-items: center;
-    background-image: url("/Pictures/sitebackground.jpg")
+    /*background-image: url("/Pictures/sitebackground.jpg")*/
    /* background-color: #cccccc;*/
 }
 
