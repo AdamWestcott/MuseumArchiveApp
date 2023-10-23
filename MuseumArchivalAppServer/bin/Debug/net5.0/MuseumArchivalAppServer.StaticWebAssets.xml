@@ -1,0 +1,7 @@
+﻿<StaticWebAssets Version="1.0">
+  <ContentRoot BasePath="/" Path="C:\Users\adam2\Documents\MuesumArchiveApp\MuseumArchiveApp\MuseumArchivalAppServer\obj\Debug\net5.0\scopedcss\bundle\" />
+  <ContentRoot BasePath="_content/BlazorInputFile" Path="C:\Users\adam2\.nuget\packages\blazorinputfile\0.2.0\build\..\staticwebassets\" />
+  <ContentRoot BasePath="_content/Radzen.Blazor" Path="C:\Users\adam2\.nuget\packages\radzen.blazor\4.7.13\build\..\staticwebassets\" />
+  <ContentRoot BasePath="_content/Telerik.ReportViewer.Blazor" Path="C:\Users\adam2\.nuget\packages\telerik.reportviewer.blazor\17.0.23.315\build\..\staticwebassets\" />
+  <ContentRoot BasePath="_content/Telerik.UI.for.Blazor" Path="C:\Users\adam2\.nuget\packages\telerik.ui.for.blazor\3.2.0\build\..\staticwebassets\" />
+</StaticWebAssets>

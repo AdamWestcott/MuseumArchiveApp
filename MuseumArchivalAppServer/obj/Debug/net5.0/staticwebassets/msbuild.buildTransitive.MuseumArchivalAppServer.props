@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\MuseumArchivalAppServer.props" />
+</Project>
