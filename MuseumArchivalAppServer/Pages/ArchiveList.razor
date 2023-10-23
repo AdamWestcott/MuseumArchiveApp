@@ -22,6 +22,8 @@
         <NavLink href="archive/create" class="btn btn-info form-control">Add New Item</NavLink>
     </div>
 </div>
+
+
 <RadzenDropDown @bind-Value=@keywordNamesFilterList Data=@keywordsForFilter Multiple=true AllowClear=true Placeholder="Filter Table" Chips=true Style="width: 100%; max-width: 400px;" Change="changeFilter" />
 <RadzenTextBox @bind-Value=@TableSearch  Placeholder="Filter Table" Style="width: 100%; max-width: 400px;" Change="changeFilter" /> 
 <RadzenButton type="button" class="btn btn-primary" Click="changeFilterText">Filter Table</RadzenButton>
